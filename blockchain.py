@@ -1,6 +1,10 @@
 import hashlib
 import json
+from textwrap import dedent
+from uuid import uuid4
 from time import time
+
+from flask import Flask, jsonify, request
 
 
 class Blockchain(object):
@@ -99,3 +103,50 @@ class Blockchain(object):
     def last_block(self):
         # Returns the last block in the chain
         return self.chain[-1]
+
+
+# Instantiate our Node
+app = Flask(__name__)
+
+# Generate a globally unique address for this node
+node_identifier = str(uuid4()).replace('-', '')
+
+# Instantiate the Blockchain
+blockchain = Blockchain()
+
+
+@app.route('/mine', methods=['GET'])
+def mine():
+    return "We will mine a new block"
+
+
+@app.route('/transactions/new', method=['POST'])
+def new_transaction():
+    values = request.get_json()
+
+    # Check that the required fields are in the POST'ed data
+    required = ['sender', 'recipient', 'amount']
+    if not all(k in values for k in required):
+        return 'Missing Values', 400
+
+    # Create a new transaction
+    index = blockchain.new_transaction(
+        values['sender'], values['recipient'], values['amount'])
+
+    response = {'message': f'Transaction will be added to Block {index}'}
+
+    return jsonify(reponse), 201
+
+
+@app.route('/chain',  method=['GET'])
+def full_chain():
+    response = {
+        'chain': blockchain.chain,
+        'length': len(blockchain.chain)
+    }
+
+    return jsonify(response), 200
+
+
+if __name__ == '__main__':
+    app.run('host=0.0.0.0', port=5000)
