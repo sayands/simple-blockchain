@@ -5,6 +5,7 @@ from uuid import uuid4
 from time import time
 from urllib.parse import urlparse
 from flask import Flask, jsonify, request
+import requests
 
 
 class Blockchain(object):
@@ -43,7 +44,7 @@ class Blockchain(object):
             print(f'{block}')
             print("\n-----------\n")
             # Check that the hash of the block is incorrect
-            if block['previous-hash'] != self.hash(last_block):
+            if block['previous_hash'] != self.hash(last_block):
                 return False
 
             # Check that the proof of work is correct
@@ -70,7 +71,7 @@ class Blockchain(object):
 
         # Grab and verify the chains from all the nodes in our network
         for node in neighbours:
-            response = request.get(f'http://{node}/chain')
+            response = requests.get(f'http://{node}/chain')
 
             if response.status_code == 200:
                 length = response.json()['length']
@@ -273,7 +274,7 @@ def consensus():
 
     if replaced:
         response = {
-            'message': 'Our chain was placed',
+            'message': 'Our chain was replaced',
             'new_chain': blockchain.chain
         }
 
